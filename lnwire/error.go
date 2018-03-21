@@ -48,6 +48,13 @@ func (e ErrorCode) String() string {
 	}
 }
 
+// Error returns the human redable version of the target ErrorCode.
+//
+// Satisfies the Error interface.
+func (e ErrorCode) Error() string {
+	return e.String()
+}
+
 // ErrorData is a set of bytes associated with a particular sent error. A
 // receiving node SHOULD only print out data verbatim if the string is composed
 // solely of printable ASCII characters. For reference, the printable character
@@ -62,7 +69,7 @@ type ErrorData []byte
 // TODO(roasbeef): remove the error code
 type Error struct {
 	// ChanID references the active channel in which the error occurred
-	// within. If the ChanID is all zeroes, then this error applies to the
+	// within. If the ChanID is all zeros, then this error applies to the
 	// entire established connection.
 	ChanID ChannelID
 

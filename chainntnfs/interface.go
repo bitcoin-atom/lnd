@@ -25,7 +25,7 @@ type ChainNotifier interface {
 	// confirmations has been reached for the txid, as well as if the
 	// original tx gets re-org'd out of the mainchain.  The heightHint
 	// parameter is provided as a convenience to light clients. The
-	// heightHint denotes the earlies height in the blockchain in which the
+	// heightHint denotes the earliest height in the blockchain in which the
 	// target txid _could_ have been included in the chain.  This can be
 	// used to bound the search space when checking to see if a
 	// notification can immediately be dispatched due to historical data.
@@ -36,12 +36,12 @@ type ChainNotifier interface {
 		heightHint uint32) (*ConfirmationEvent, error)
 
 	// RegisterSpendNtfn registers an intent to be notified once the target
-	// outpoint is succesfully spent within a confirmed transaction. The
+	// outpoint is successfully spent within a confirmed transaction. The
 	// returned SpendEvent will receive a send on the 'Spend' transaction
 	// once a transaction spending the input is detected on the blockchain.
 	// The heightHint parameter is provided as a convenience to light
-	// clients. The heightHint denotes the earlies height in the blockchain
-	// in which the target output could've been created.
+	// clients. The heightHint denotes the earliest height in the blockchain
+	// in which the target output could have been created.
 	//
 	// NOTE: This notifications should be triggered once the transaction is
 	// *seen* on the network, not when it has received a single confirmation.
@@ -177,7 +177,7 @@ type NotifierDriver struct {
 
 	// New creates a new instance of a concrete ChainNotifier
 	// implementation given a variadic set up arguments. The function takes
-	// a varidaic number of interface parameters in order to provide
+	// a variadic number of interface parameters in order to provide
 	// initialization flexibility, thereby accommodating several potential
 	// ChainNotifier implementations.
 	New func(args ...interface{}) (ChainNotifier, error)

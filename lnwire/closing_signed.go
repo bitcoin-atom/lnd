@@ -3,7 +3,6 @@ package lnwire
 import (
 	"io"
 
-	"github.com/roasbeef/btcd/btcec"
 	"github.com/roasbeef/btcutil"
 )
 
@@ -15,7 +14,7 @@ import (
 //
 // NOTE: The responder is able to send a signature without any additional
 // messages as all transactions are assembled observing BIP 69 which defines a
-// cannonical ordering for input/outputs. Therefore, both sides are able to
+// canonical ordering for input/outputs. Therefore, both sides are able to
 // arrive at an identical closure transaction as they know the order of the
 // inputs/outputs.
 type ClosingSigned struct {
@@ -27,12 +26,12 @@ type ClosingSigned struct {
 	FeeSatoshis btcutil.Amount
 
 	// Signature is for the proposed channel close transaction.
-	Signature *btcec.Signature
+	Signature Sig
 }
 
 // NewClosingSigned creates a new empty ClosingSigned message.
 func NewClosingSigned(cid ChannelID, fs btcutil.Amount,
-	sig *btcec.Signature) *ClosingSigned {
+	sig Sig) *ClosingSigned {
 
 	return &ClosingSigned{
 		ChannelID:   cid,

@@ -1,16 +1,12 @@
 package lnwire
 
-import (
-	"io"
-
-	"github.com/roasbeef/btcd/btcec"
-)
+import "io"
 
 // CommitSig is sent by either side to stage any pending HTLC's in the
 // receiver's pending set into a new commitment state.  Implicitly, the new
 // commitment transaction constructed which has been signed by CommitSig
 // includes all HTLC's in the remote node's pending set. A CommitSig message
-// may be sent after a series of UpdateAddHTLC/UpdateFufillHTLC messages in
+// may be sent after a series of UpdateAddHTLC/UpdateFulfillHTLC messages in
 // order to batch add several HTLC's with a single signature covering all
 // implicitly accepted HTLC's.
 type CommitSig struct {
@@ -23,10 +19,10 @@ type CommitSig struct {
 	// additional data due to the piggybacking of Bob's next revocation
 	// hash in his prior RevokeAndAck message, as well as the canonical
 	// ordering used for all inputs/outputs within commitment transactions.
-	// If initiating a new commitment state, this signature shoud ONLY
+	// If initiating a new commitment state, this signature should ONLY
 	// cover all of the sending party's pending log updates, and the log
 	// updates of the remote party that have been ACK'd.
-	CommitSig *btcec.Signature
+	CommitSig Sig
 
 	// HtlcSigs is a signature for each relevant HTLC output within the
 	// created commitment. The order of the signatures is expected to be
@@ -35,7 +31,7 @@ type CommitSig struct {
 	// sender of this message), a signature for a HTLC timeout transaction
 	// should be signed, for each incoming HTLC the HTLC timeout
 	// transaction should be signed.
-	HtlcSigs []*btcec.Signature
+	HtlcSigs []Sig
 }
 
 // NewCommitSig creates a new empty CommitSig message.

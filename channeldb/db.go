@@ -8,7 +8,8 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/boltdb/bolt"
+	"github.com/coreos/bbolt"
+	"github.com/go-errors/errors"
 	"github.com/roasbeef/btcd/btcec"
 	"github.com/roasbeef/btcd/wire"
 )
@@ -86,6 +87,11 @@ func Open(dbPath string) (*DB, error) {
 	}
 
 	return chanDB, nil
+}
+
+// Path returns the file path to the channel database.
+func (d *DB) Path() string {
+	return d.dbPath
 }
 
 // Wipe completely deletes all saved state within all used buckets within the
@@ -392,7 +398,7 @@ func fetchChannels(d *DB, pendingOnly bool) ([]*OpenChannel, error) {
 
 // FetchClosedChannels attempts to fetch all closed channels from the database.
 // The pendingOnly bool toggles if channels that aren't yet fully closed should
-// be returned int he response or not. When a channel was cooperatively closed,
+// be returned in the response or not. When a channel was cooperatively closed,
 // it becomes fully closed after a single confirmation.  When a channel was
 // forcibly closed, it will become fully closed after _all_ the pending funds
 // (if any) have been swept.
@@ -429,9 +435,45 @@ func (d *DB) FetchClosedChannels(pendingOnly bool) ([]*ChannelCloseSummary, erro
 	return chanSummaries, nil
 }
 
+// ErrClosedChannelNotFound signals that a closed channel could not be found in
+// the channeldb.
+var ErrClosedChannelNotFound = errors.New("unable to find closed channel summary")
+
+// FetchClosedChannel queries for a channel close summary using the channel
+// point of the channel in question.
+func (d *DB) FetchClosedChannel(chanID *wire.OutPoint) (*ChannelCloseSummary, error) {
+	var chanSummary *ChannelCloseSummary
+	if err := d.View(func(tx *bolt.Tx) error {
+		closeBucket := tx.Bucket(closedChannelBucket)
+		if closeBucket == nil {
+			return ErrClosedChannelNotFound
+		}
+
+		var b bytes.Buffer
+		var err error
+		if err = writeOutpoint(&b, chanID); err != nil {
+			return err
+		}
+
+		summaryBytes := closeBucket.Get(b.Bytes())
+		if summaryBytes == nil {
+			return ErrClosedChannelNotFound
+		}
+
+		summaryReader := bytes.NewReader(summaryBytes)
+		chanSummary, err = deserializeCloseChannelSummary(summaryReader)
+
+		return err
+	}); err != nil {
+		return nil, err
+	}
+
+	return chanSummary, nil
+}
+
 // MarkChanFullyClosed marks a channel as fully closed within the database. A
 // channel should be marked as fully closed if the channel was initially
-// cooperatively closed and it's reach a single confirmation, or after all the
+// cooperatively closed and it's reached a single confirmation, or after all the
 // pending funds in a channel that has been forcibly closed have been swept.
 func (d *DB) MarkChanFullyClosed(chanPoint *wire.OutPoint) error {
 	return d.Update(func(tx *bolt.Tx) error {
